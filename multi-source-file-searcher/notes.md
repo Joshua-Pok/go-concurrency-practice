@@ -119,3 +119,24 @@ return err
 
 
 
+
+
+# Step 3: The Concurrent Engine
+
+
+**go** keyword is used to prefix a function to start it in a goroutine. Meaning it does not wait for function to return and moves on immediately
+
+
+**sync.WaitGroup** is a counter that tracks how many goroutines are running
+
+- **Add(n)** increases the counter by > n
+- **Done()** decreases the counter by 1. Usually called inside the Goroutine
+- **Wait()** Blocks current execution until counter hits 0
+
+
+## Closures
+
+When we spanw a go routine using an annonymous function, it "captures" variables from surrounding scope. Meaning it does not maintain its own scope but shares it with the parent function
+
+
+## Step Goal: Refactor Search Function to spawn a new Goroutine for every new file it finds. Use sync.WaitGroup to ensure program stays alive until every file has been processed
