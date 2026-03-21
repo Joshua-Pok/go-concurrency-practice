@@ -3,9 +3,10 @@ package search
 import (
 	"os"
 	"path/filepath"
+	"sync"
 )
 
-func Search(rootPath string, searchTerm string) error {
+func Search(rootPath string, searchTerm string, wg *sync.WaitGroup) error {
 
 	files, err := os.ReadDir(rootPath)
 	if err != nil {
@@ -16,18 +17,26 @@ func Search(rootPath string, searchTerm string) error {
 		if file.IsDir() {
 			full_path := filepath.Join(rootPath, file.Name())
 
-			err := Search(full_path, searchTerm)
+			err := Search(full_path, searchTerm, wg)
 			if err != nil {
 				return err
 			}
 		} else {
+
 			full_path := filepath.Join(rootPath, file.Name())
+			wg.Add(1)
 
-			err := ProcessFile(full_path, searchTerm)
+			go func(path string) error {
+				defer wg.Done()
+				err := ProcessFile(path, searchTerm)
 
-			if err != nil {
-				return err
-			}
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}(full_path)
+
 		}
 	}
 
