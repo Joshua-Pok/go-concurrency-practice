@@ -59,3 +59,22 @@ return &Store[T]{
 data: make(map[string]T),
 }
 }
+
+
+
+# Step 2: Concurrent Stress Test
+
+
+
+## Create a stress test that spawns high number of concurrent go routines that will all attempt to set values into same store instances simultaenously
+
+
+
+go has a race detector
+
+we can run **go test -race ./...**
+this instruments our code at compile time to track every memory access so even if our program does not crash it will catch concurrent readwrites
+
+
+
+# Step 4: Race Detection and Failure AAnalysis
