@@ -200,3 +200,51 @@ results <- result
 result, err := pingSite(url)
 }
 
+
+# Step 4: Context Refactor
+
+
+context.Context allows us to propogate a "cancellation signaldown thru every layer of our code
+
+
+context.Background returns a new context of context.Context
+
+
+context has a Deadline, Done, Err, Value function
+
+
+Done() function returns a channel that returns a value
+we can race our done channel with another channel that awaits our result to see if we get a timeout
+
+Key Features and Uses
+
+    Cancellation: The primary use of context.Context is to signal to multiple goroutines that they should stop working and return early. This is vital in scenarios like when a client disconnects from a server, preventing unnecessary work and resource leaks.
+    Timeouts and Deadlines: Contexts can enforce time limits on operations. A function can return an error if a predefined deadline passes before the work is completed.
+    Value Propagation: It provides a mechanism to carry request-specific metadata, such as user IDs, authentication tokens, or tracing information, through the call chain without cluttering function signatures with many parameters.
+    Concurrency Management: By passing a single context to a "tree" of child goroutines, a single cancellation signal can stop all related tasks gracefully. 
+
+Core Interface Methods
+The context.Context type is an interface with four methods: 
+
+    Deadline() (deadline time.Time, ok bool): Returns the time when the context is automatically canceled.
+    Done() <-chan struct{}: Returns a channel that is closed when the context is canceled or times out. Functions should monitor this channel to stop their work.
+    Err() error: Returns a non-nil error after the Done channel is closed, indicating why the context was canceled (e.g., Canceled or DeadlineExceeded).
+    Value(key interface{}) interface{}: Retrieves a value associated with a specific key. 
+
+Common Functions for Creation
+The context package provides several functions to create and derive contexts: 
+
+    context.Background(): The root context for the entire application, used in main, init, and top-level incoming requests. It is never canceled and has no deadline or values.
+    context.TODO(): Used as a placeholder when a function requires a context but it's not yet clear which one to use during development.
+    context.WithCancel(parent Context): Returns a new context and a CancelFunc to manually cancel it.
+    context.WithDeadline(parent Context, d time.Time): Returns a new context that is automatically canceled at a specific time d.
+    context.WithTimeout(parent Context, timeout time.Duration): Similar to WithDeadline, but cancels after a specified duration.
+    context.WithValue(parent Context, key, val interface{}): Returns a new context with a key-value pair added to its data. 
+
+Best Practices
+
+    Pass context.Context as the first argument to functions that need it.
+    Call the returned cancel function (often using defer cancel()) to release resources when a context is no longer needed.
+    Avoid storing contexts within struct types; instead, pass them explicitly to functions.
+    Use context.WithValue sparingly for request-scoped, immutable data, not for passing optional parameters. 
+
