@@ -1,10 +1,13 @@
 package monitor
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"time"
 )
+
+const MAX_WAIT_TIME = 30 * time.Second
 
 type Result struct {
 	statusCode int
@@ -47,11 +50,21 @@ func Monitor(urls []string, limit int) (<-chan Result, error) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			result, err := pingSite(url)
-			if err != nil {
-				result.Error = err
+			done := make(chan Result, 1)
+
+			go func() {
+				r, err := pingSite(url)
+				if err != nil {
+					r.Error = err
+				}
+				done <- r
+			}()
+			select {
+			case r := <-done:
+				results <- r
+			case <-time.After(MAX_WAIT_TIME):
+				results <- Result{Error: http.ErrHandlerTimeout}
 			}
-			results <- result
 
 		}(i, url)
 

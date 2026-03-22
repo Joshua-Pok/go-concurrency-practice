@@ -142,3 +142,61 @@ It is better to return a channel instead of collecting into a list so that we do
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
+
+
+
+
+# Step 3: Naive Timeout
+
+
+Server might not fail immediately. It might just sit there and do nothing. If a pinger keeps waiting for a dead url. it wastes a slot in our semaphore.
+
+
+go select statement allows a goroutine to wait on multiple communication operations
+
+
+select statements must be **channel** operations
+
+time.After duration returns a channel that sends a value after specified time has elapsed
+
+
+by racing our pinger result channel against time.after we can implement a timeout
+
+## Step Goal: Update Worker Logic so that if pingSite takes longer than a specific duration. worker returns a timeout error instead of waiting indefinitely
+
+
+Sketch
+
+define MAX_WAIT_TIME constant = 30
+
+go func(i int, url string){
+
+defer wg.Done()
+defer func() {<- sem }()
+
+
+start = time.Now()
+
+
+timeout := time.After(true)
+
+
+select{
+
+case timeout:
+<-sem
+
+case pingSite(url):
+if err != nil{
+result.Error = err
+
+}
+
+
+results <- result
+}
+
+
+result, err := pingSite(url)
+}
+
