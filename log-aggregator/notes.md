@@ -96,3 +96,6 @@ We start all our workers at once. Each worker runs a function to listen to logch
 
 we can use for i := range i.logChan {}
 to pull logs out of the channel one by one
+
+
+# Step 4: Batching and Tuning

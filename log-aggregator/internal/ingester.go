@@ -83,10 +83,6 @@ func (i *Ingester) startWorker(wg *sync.WaitGroup) {
 		}
 	}
 
-	for batch := range i.logChan { //blocks while waiting for next value, and exits loop once channel is closed
-		_ = i.writer.Write(batch)
-		i.metrics.totalWritten.Add(uint64(len(batch)))
-	}
 }
 
 func (i *Ingester) Start(workerCount int, wg *sync.WaitGroup) {
